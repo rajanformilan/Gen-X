@@ -641,34 +641,6 @@
       const menus = document.querySelectorAll(".menu-dropdown");
       menus.forEach(menu => menu.classList.remove("active"));
     };
-<script>
-  function loadUserProfile() {
-    const defaultProfile = {
-      name: "John Doe",
-      email: "johndoe@example.com",
-      gender: "Male",
-      dob: "1990-01-01",
-      profilePicture: "https://via.placeholder.com/120",
-      coverPicture: "https://via.placeholder.com/600x200?text=Cover"
-    };
-    const storedProfile = localStorage.getItem("userProfile");
-    if (!storedProfile) return defaultProfile;
-
-    try {
-      return JSON.parse(storedProfile);
-    } catch (e) {
-      return defaultProfile;
-    }
-  }
-
-  const user = loadUserProfile();
-  document.getElementById("userName").textContent = user.name;
-  document.getElementById("userEmail").textContent = user.email;
-  document.getElementById("userGender").textContent = user.gender;
-  document.getElementById("userDob").textContent = user.dob;
-  document.getElementById("profileImage").src = user.profilePicture || "https://via.placeholder.com/120";
-  document.getElementById("coverImage").src = user.coverPicture || "https://via.placeholder.com/600x200?text=Cover";
-</script>
 
     // Initialize page
     updateUserProfileUI();
