@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>User Profile</title>
+  <title>User Profile with Three Dots Edit/Delete</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -41,6 +41,7 @@
     button:hover {
       background-color: #0056b3;
     }
+
     #postForm {
       background: white;
       padding: 15px;
@@ -68,6 +69,7 @@
       cursor: pointer;
       font-weight: bold;
     }
+
     .post {
       background: white;
       padding: 15px;
@@ -75,6 +77,7 @@
       margin-bottom: 15px;
       box-shadow: 0 1px 2px rgba(0,0,0,0.1);
       text-align: left;
+      position: relative;
     }
     .post strong {
       font-size: 16px;
@@ -90,6 +93,7 @@
       border-radius: 8px;
       margin-bottom: 10px;
     }
+
     .post-actions {
       display: flex;
       gap: 15px;
@@ -107,6 +111,42 @@
     .post-actions button.liked {
       color: #1877f2;
       font-weight: bold;
+    }
+
+    .menu-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  color: black;
+  cursor: pointer;
+}
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: 35px;
+      right: 10px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      z-index: 99;
+    }
+    .dropdown button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: none;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+    }
+    .dropdown button:hover {
+      background: #f5f5f5;
     }
   </style>
 </head>
@@ -136,9 +176,7 @@
         window.location.href = 'authentication.html';
         return;
       }
-
       const profile = JSON.parse(storedProfile);
-
       document.getElementById('profileImage').src = profile.avatar || 'https://via.placeholder.com/120';
       document.getElementById('userName').textContent = profile.name || 'Unknown';
       document.getElementById('userEmail').textContent = profile.email || '';
@@ -165,14 +203,15 @@
         const postDiv = document.createElement('div');
         postDiv.className = 'post';
 
-        let imgHTML = '';
-        if (post.image) {
-          imgHTML = `<img src="${post.image}" alt="Post Image" class="post-image" />`;
-        }
-
+        const imgHTML = post.image ? `<img src="${post.image}" class="post-image" />` : '';
         const likedClass = post.liked ? 'liked' : '';
 
         postDiv.innerHTML = `
+          <button class="menu-button" onclick="toggleMenu(event, ${idx})">⋮</button>
+          <div class="dropdown" id="dropdown-${idx}">
+            <button onclick="editPost(${idx})">✏️ Edit</button>
+            <button onclick="deletePost(${idx})">🗑️ Delete</button>
+          </div>
           <strong>${post.name}</strong>
           <div class="post-text">${post.text}</div>
           ${imgHTML}
@@ -180,19 +219,29 @@
             <button class="like-btn ${likedClass}" data-index="${idx}">
               <span>👍</span> <span class="like-count">${post.likes}</span> Like
             </button>
-            <button class="comment-btn" data-index="${idx}">💬 Comment</button>
-            <button class="share-btn" data-index="${idx}">🔗 Share</button>
+            <button class="comment-btn">💬 Comment</button>
+            <button class="share-btn">🔗 Share</button>
           </div>
         `;
-
         feed.appendChild(postDiv);
       });
       attachEventListeners();
     }
 
+    function toggleMenu(e, idx) {
+      e.stopPropagation();
+      document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+      const dropdown = document.getElementById(`dropdown-${idx}`);
+      dropdown.style.display = 'block';
+    }
+
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+    });
+
     function attachEventListeners() {
       document.querySelectorAll('.like-btn').forEach(btn => {
-        btn.onclick = function() {
+        btn.onclick = function () {
           const idx = this.getAttribute('data-index');
           posts[idx].liked = !posts[idx].liked;
           posts[idx].likes += posts[idx].liked ? 1 : -1;
@@ -206,38 +255,43 @@
       renderPosts();
     }
 
-    postForm.addEventListener('submit', function(e) {
+    postForm.addEventListener('submit', function (e) {
       e.preventDefault();
-
-      if (!postText.value.trim()) {
-        alert('Please enter some text.');
-        return;
-      }
+      const text = postText.value.trim();
+      const profile = JSON.parse(localStorage.getItem('userProfile'));
+      if (!text) return alert('Please enter some text.');
 
       const file = postImage.files[0];
-      const profile = JSON.parse(localStorage.getItem('userProfile'));
-
       if (file) {
         const reader = new FileReader();
-        reader.onload = function(event) {
-          addPost(postText.value.trim(), event.target.result, profile.name);
+        reader.onload = function (event) {
+          addPost(text, event.target.result, profile.name);
         };
         reader.readAsDataURL(file);
       } else {
-        addPost(postText.value.trim(), null, profile.name);
+        addPost(text, null, profile.name);
       }
     });
 
     function addPost(text, image, name) {
-      posts.unshift({
-        name: name || 'Unknown',
-        text,
-        image,
-        likes: 0,
-        liked: false
-      });
+      posts.unshift({ name: name || 'Unknown', text, image, likes: 0, liked: false });
       postForm.reset();
       saveAndRender();
+    }
+
+    function deletePost(index) {
+      if (confirm('Delete this post?')) {
+        posts.splice(index, 1);
+        saveAndRender();
+      }
+    }
+
+    function editPost(index) {
+      const newText = prompt('Edit your post:', posts[index].text);
+      if (newText !== null && newText.trim() !== '') {
+        posts[index].text = newText.trim();
+        saveAndRender();
+      }
     }
 
     renderPosts();
