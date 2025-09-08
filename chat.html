@@ -1,227 +1,415 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GenX - Friends</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat Message</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
+    /* Reset */
+    * {
+      box-sizing: border-box;
       margin: 0;
+      padding: 0;
     }
-    header {
-      background: #1877f2;
-      color: #fff;
-      padding: 12px;
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
+
+    body, html {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      color: #050505;
+      overflow: hidden;
     }
-    .tabs {
+
+    .container {
       display: flex;
-      justify-content: space-around;
-      background: #fff;
+      height: 100vh;
+      max-width: 100vw;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 320px;
+      background: white;
+      border-right: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar header {
+      padding: 16px;
+      font-weight: 700;
+      font-size: 20px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+      background-color: #1877f2;
+      color: white;
+    }
+
+    .search-box {
+      padding: 10px 16px;
       border-bottom: 1px solid #ddd;
     }
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 12px;
-      cursor: pointer;
-      font-weight: bold;
-      color: #65676b;
-    }
-    .tab.active {
-      border-bottom: 3px solid #1877f2;
-      color: #1877f2;
-    }
-    .container {
-      max-width: 600px;
-      margin: 20px auto;
-      padding: 0 10px;
-    }
-    .card {
-      background: #fff;
-      padding: 15px;
-      margin: 12px 0;
-      border-radius: 10px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .user-info {
-      display: flex;
-      align-items: center;
-    }
-    .user-info img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      margin-right: 12px;
-    }
-    .user-info .name {
-      font-weight: bold;
-      color: #050505;
-    }
-    .user-info .mutual {
-      font-size: 13px;
-      color: #65676b;
-    }
-    .buttons button {
-      margin-left: 5px;
-      padding: 6px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+
+    .search-box input {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
       font-size: 14px;
     }
-    .add { background: #1877f2; color: #fff; }
-    .cancel { background: #e4e6eb; color: #050505; }
-    .accept { background: #1877f2; color: white; }
-    .reject { background: #e4e6eb; color: #050505; }
-    .friend { background: #e4e6eb; color: #050505; }
+
+    .contacts-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .contact {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .contact:hover, .contact.active {
+      background-color: #f0f2f5;
+    }
+
+    .contact img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 12px;
+    }
+
+    .contact-info {
+      flex: 1;
+    }
+
+    .contact-name {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
+      color: #050505;
+    }
+
+    .contact-last-msg {
+      font-size: 13px;
+      color: #65676b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Chat Area */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+    }
+
+    .chat-header {
+      padding: 16px;
+      border-bottom: 1px solid #ddd;
+      font-weight: 700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      background-color: #f5f6f7;
+    }
+
+    .chat-header img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 12px;
+      object-fit: cover;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      background: #e5ddd5;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .message.sent {
+      align-self: flex-end;
+      background-color: #1877f2;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.received {
+      align-self: flex-start;
+      background-color: white;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+
+    /* Input area */
+    .input-area {
+      display: flex;
+      padding: 12px 16px;
+      border-top: 1px solid #ddd;
+      background-color: #f5f6f7;
+      gap: 8px;
+    }
+
+    .input-area input[type="text"] {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .input-area button {
+      background-color: #1877f2;
+      border: none;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .input-area button:hover {
+      background-color: #155db2;
+    }
+
+    /* Responsive for mobile */
+    @media (max-width: 600px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: 160px;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        overflow-x: auto;
+        flex-direction: row;
+        align-items: center;
+        padding: 10px 0;
+      }
+
+      .sidebar header {
+        display: none;
+      }
+
+      .search-box {
+        display: none;
+      }
+
+      .contacts-list {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        height: 100%;
+      }
+
+      .contact {
+        flex-direction: column;
+        padding: 8px 10px;
+        min-width: 80px;
+        border-bottom: none;
+        border-right: 1px solid #eee;
+        justify-content: center;
+      }
+
+      .contact img {
+        width: 56px;
+        height: 56px;
+        margin: 0 0 6px 0;
+      }
+
+      .contact-info {
+        text-align: center;
+      }
+
+      .contact-name {
+        font-size: 13px;
+        margin-bottom: 2px;
+      }
+
+      .contact-last-msg {
+        display: none;
+      }
+
+      .chat-area {
+        height: calc(100vh - 160px);
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="container">
+    <!-- Sidebar with contacts -->
+    <div class="sidebar">
+      <header>Messenger</header>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search contacts..." />
+      </div>
+      <div class="contacts-list" id="contactsList">
+        <!-- Contacts will be rendered here -->
+      </div>
+    </div>
 
-<header>Friends</header>
+    <!-- Chat area -->
+    <div class="chat-area">
+      <div class="chat-header" id="chatHeader">
+        Select a contact to chat
+      </div>
+      <div class="messages" id="messagesContainer">
+        <!-- Messages will appear here -->
+      </div>
+      <form id="messageForm" class="input-area" style="display:none;">
+        <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  </div>
 
-<div class="tabs">
-  <div class="tab active" onclick="showTab('suggestions')">Suggestions</div>
-  <div class="tab" onclick="showTab('requests')">Friend Requests</div>
-  <div class="tab" onclick="showTab('friends')">All Friends</div>
-</div>
-
-<div class="container">
-  <div id="suggestions"></div>
-  <div id="requests" style="display:none"></div>
-  <div id="friends" style="display:none"></div>
-</div>
-
-<script>
-  let currentUser = "Milan";
-
-  let users = JSON.parse(localStorage.getItem("genxUsers")) || {
-    "Milan": { friends: [], requestsSent: [], requestsReceived: [], avatar:"https://i.pravatar.cc/150?u=Milan" },
-    "Sita": { friends: [], requestsSent: [], requestsReceived: [], avatar:"https://i.pravatar.cc/150?u=Sita" },
-    "Ram": { friends: [], requestsSent: [], requestsReceived: [], avatar:"https://i.pravatar.cc/150?u=Ram" },
-    "Hari": { friends: [], requestsSent: [], requestsReceived: [], avatar:"https://i.pravatar.cc/150?u=Hari" }
-  };
-
-  function saveUsers() {
-    localStorage.setItem("genxUsers", JSON.stringify(users));
-  }
-
-  function sendRequest(toUser) {
-    if (!users[currentUser].requestsSent.includes(toUser) &&
-        !users[currentUser].friends.includes(toUser) &&
-        toUser !== currentUser) {
-      users[currentUser].requestsSent.push(toUser);
-      users[toUser].requestsReceived.push(currentUser);
-      saveUsers();
-      render();
-    }
-  }
-
-  function cancelRequest(toUser) {
-    users[currentUser].requestsSent =
-      users[currentUser].requestsSent.filter(u => u !== toUser);
-    users[toUser].requestsReceived =
-      users[toUser].requestsReceived.filter(u => u !== currentUser);
-    saveUsers();
-    render();
-  }
-
-  function acceptRequest(fromUser) {
-    users[currentUser].friends.push(fromUser);
-    users[fromUser].friends.push(currentUser);
-    users[currentUser].requestsReceived =
-      users[currentUser].requestsReceived.filter(u => u !== fromUser);
-    users[fromUser].requestsSent =
-      users[fromUser].requestsSent.filter(u => u !== currentUser);
-    saveUsers();
-    render();
-  }
-
-  function rejectRequest(fromUser) {
-    users[currentUser].requestsReceived =
-      users[currentUser].requestsReceived.filter(u => u !== fromUser);
-    users[fromUser].requestsSent =
-      users[fromUser].requestsSent.filter(u => u !== currentUser);
-    saveUsers();
-    render();
-  }
-
-  function showTab(tab) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
-    document.querySelectorAll('.container > div').forEach(d => d.style.display = "none");
-    document.getElementById(tab).style.display = "block";
-  }
-
-  function render() {
-    // Suggestions
-    document.getElementById("suggestions").innerHTML = Object.keys(users).map(u => {
-      if (u === currentUser) return "";
-      let status = "";
-      if (users[currentUser].friends.includes(u)) {
-        status = `<button class="friend">Friends</button>`;
-      } else if (users[currentUser].requestsSent.includes(u)) {
-        status = `<button class="cancel" onclick="cancelRequest('${u}')">Cancel Request</button>`;
-      } else {
-        status = `<button class="add" onclick="sendRequest('${u}')">Add Friend</button>`;
+  <script>
+    // Sample contacts data
+    const contacts = [
+      {
+        id: '1',
+        name: 'Milan Kandel',
+        avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+        messages: [
+          { text: 'Hey! How are you?', sent: false, timestamp: Date.now() - 60000 },
+          { text: 'I am good, thanks! You?', sent: true, timestamp: Date.now() - 30000 }
+        ]
+      },
+      {
+        id: '2',
+        name: 'Sita Sharma',
+        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+        messages: [
+          { text: 'Are you coming tomorrow?', sent: false, timestamp: Date.now() - 120000 },
+          { text: 'Yes, I will be there.', sent: true, timestamp: Date.now() - 90000 }
+        ]
+      },
+      {
+        id: '3',
+        name: 'Ram Thapa',
+        avatar: 'https://randomuser.me/api/portraits/men/85.jpg',
+        messages: []
       }
-      return `
-        <div class="card">
-          <div class="user-info">
-            <img src="${users[u].avatar}">
-            <div>
-              <div class="name">${u}</div>
-              <div class="mutual">3 mutual friends</div>
-            </div>
-          </div>
-          <div class="buttons">${status}</div>
-        </div>`;
-    }).join("");
+    ];
 
-    // Requests
-    document.getElementById("requests").innerHTML =
-      users[currentUser].requestsReceived.map(u => `
-        <div class="card">
-          <div class="user-info">
-            <img src="${users[u].avatar}">
-            <div>
-              <div class="name">${u}</div>
-              <div class="mutual">1 mutual friend</div>
-            </div>
-          </div>
-          <div class="buttons">
-            <button class="accept" onclick="acceptRequest('${u}')">Confirm</button>
-            <button class="reject" onclick="rejectRequest('${u}')">Delete</button>
-          </div>
-        </div>
-      `).join("") || "<p>No friend requests</p>";
+    const contactsList = document.getElementById('contactsList');
+    const chatHeader = document.getElementById('chatHeader');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageForm = document.getElementById('messageForm');
+    const messageInput = document.getElementById('messageInput');
+    const searchInput = document.getElementById('searchInput');
 
-    // Friends
-    document.getElementById("friends").innerHTML =
-      users[currentUser].friends.map(u => `
-        <div class="card">
-          <div class="user-info">
-            <img src="${users[u].avatar}">
-            <div>
-              <div class="name">${u}</div>
-              <div class="mutual">2 mutual friends</div>
-            </div>
+    let activeContactId = null;
+
+    function renderContacts(filter = '') {
+      contactsList.innerHTML = '';
+      const filtered = contacts.filter(c =>
+        c.name.toLowerCase().includes(filter.toLowerCase())
+      );
+
+      filtered.forEach(contact => {
+        const lastMsg = contact.messages.length
+          ? contact.messages[contact.messages.length - 1].text
+          : '';
+
+        const contactDiv = document.createElement('div');
+        contactDiv.className = 'contact' + (contact.id === activeContactId ? ' active' : '');
+        contactDiv.dataset.id = contact.id;
+
+        contactDiv.innerHTML = `
+          <img src="${contact.avatar}" alt="${contact.name}" />
+          <div class="contact-info">
+            <div class="contact-name">${contact.name}</div>
+            <div class="contact-last-msg">${lastMsg}</div>
           </div>
-          <div class="buttons"><button class="friend">Friends</button></div>
-        </div>
-      `).join("") || "<p>No friends yet</p>";
-  }
+        `;
 
-  render();
-</script>
+        contactDiv.onclick = () => {
+          selectContact(contact.id);
+        };
 
+        contactsList.appendChild(contactDiv);
+      });
+    }
+
+    function selectContact(id) {
+      activeContactId = id;
+      const contact = contacts.find(c => c.id === id);
+      chatHeader.innerHTML = `<img src="${contact.avatar}" alt="${contact.name}" /> ${contact.name}`;
+      messageForm.style.display = 'flex';
+      renderContacts(searchInput.value);
+      renderMessages(contact);
+    }
+
+    function renderMessages(contact) {
+      messagesContainer.innerHTML = '';
+      contact.messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'message ' + (msg.sent ? 'sent' : 'received');
+        div.textContent = msg.text;
+        messagesContainer.appendChild(div);
+      });
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    messageForm.addEventListener('submit', e => {
+      e.preventDefault();
+      sendMessage();
+    });
+
+    function sendMessage() {
+      const msg = messageInput.value.trim();
+      if (!msg || !activeContactId) return;
+
+      const contact = contacts.find(c => c.id === activeContactId);
+      contact.messages.push({ text: msg, sent: true, timestamp: Date.now() });
+      renderMessages(contact);
+      messageInput.value = '';
+
+      // Simulate reply after 1.5 seconds
+      setTimeout(() => {
+        contact.messages.push({
+          text: 'Auto-reply: ' + msg.split('').reverse().join(''),
+          sent: false,
+          timestamp: Date.now()
+        });
+        renderMessages(contact);
+      }, 1500);
+    }
+
+    searchInput.addEventListener('input', () => {
+      renderContacts(searchInput.value);
+    });
+
+    // Initialize
+    renderContacts();
+  </script>
 </body>
 </html>
